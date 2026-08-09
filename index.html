@@ -1109,7 +1109,7 @@
       {
         icon: '🌼',
         title: 'Memory Garden',
-        body: '<strong>Цель:</strong> вырастить 6 цветов.<br>Открывай по две карточки. Найди пару: обычный глагол и утвердительное предложение о вчерашнем дне. Неверная пара забирает одно сердце.'
+        body: '<strong>Цель:</strong> вырастить 6 цветов.<br>Открывай по две карточки. Найди пару: обычный глагол и утвердительное предложение о вчерашнем дне. Попытки не ограничены.'
       },
       {
         icon: '🚂',
@@ -1219,8 +1219,9 @@
       hudTitle.textContent = title;
       hudCount.textContent = `${done} / ${total}`;
       hudFill.style.width = `${Math.round(done / total * 100)}%`;
-      hearts.textContent = lifeCount > 0 ? Array.from({ length: lifeCount }, () => '♥').join(' ') : '♡';
-      hearts.setAttribute('aria-label', `Жизни: ${lifeCount}`);
+      const unlimited = lifeCount === Infinity;
+      hearts.textContent = unlimited ? '∞' : lifeCount > 0 ? Array.from({ length: lifeCount }, () => '♥').join(' ') : '♡';
+      hearts.setAttribute('aria-label', unlimited ? 'Неограниченное количество попыток' : `Жизни: ${lifeCount}`);
     }
 
     function showFeedback(text, type = '') {
@@ -1473,7 +1474,7 @@
         { pairIndex, kind: 'sentence', value: pair.sentence }
       ]));
 
-      memoryState = { lives: 5, matches: 0, cards, open: [], locked: false };
+      memoryState = { lives: Infinity, matches: 0, cards, open: [], locked: false };
       gameStage.innerHTML = `
         <div class="memory-game">
           <aside class="garden-progress">
@@ -1529,7 +1530,6 @@
         if (memoryState.matches === memoryPairs.length) scheduleGame(1, () => completeGame(1), 650);
       } else {
         playSound('bad');
-        memoryState.lives--;
         setHUD('Memory Garden', memoryState.matches, memoryPairs.length, memoryState.lives);
         buttons[aIndex].classList.add('wrong');
         buttons[bIndex].classList.add('wrong');
@@ -1541,7 +1541,6 @@
           buttons[bIndex]?.classList.remove('flipped');
           memoryState.open = [];
           memoryState.locked = false;
-          if (memoryState.lives <= 0) startMemoryGame();
         }, 1100);
       }
     }
