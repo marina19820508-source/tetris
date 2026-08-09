@@ -21,7 +21,7 @@ const pick = (...ids: string[]) => ids.map((id) => ({ ...TASK_LIBRARY.find((task
 
 export const GAME_IMAGES = {
   bus: asset('london-bus-dash.png'),
-  garden: asset('london-garden-pairs.png'),
+  garden: asset('london-garden-clean.png'),
   train: asset('london-story-train.png'),
   hero: asset('london-hero.png'),
 } as const;
