@@ -496,6 +496,21 @@
       font-size: clamp(14px, 1.8vw, 20px);
       font-weight: 900;
       text-align: center;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: filter .12s, box-shadow .12s;
+    }
+
+    .falling-word:hover,
+    .falling-word:focus-visible {
+      filter: brightness(1.08);
+      box-shadow: 0 0 0 9px rgba(255, 238, 123, .32), 0 12px 24px rgba(29, 21, 70, .38);
+    }
+
+    .falling-word.chosen {
+      filter: brightness(1.2);
+      box-shadow: 0 0 0 13px rgba(255, 255, 255, .42), 0 12px 30px rgba(29, 21, 70, .45);
     }
 
     .rocket-player {
@@ -947,7 +962,7 @@
         <div class="card-body">
           <div class="card-copy">
             <h2>Rocket Catch</h2>
-            <p>Управляй ракетой и лови правильные формы с <strong>-ed</strong>.</p>
+            <p>Нажимай на правильные звёзды с формами <strong>Past Simple</strong>.</p>
           </div>
           <div class="card-actions">
             <button class="how-button" data-how="0" aria-label="Как играть в Rocket Catch">?</button>
@@ -1060,7 +1075,7 @@
       {
         icon: '🚀',
         title: 'Rocket Catch',
-        body: '<strong>Цель:</strong> поймать 7 правильных форм Past Simple.<br>Двигай ракету стрелками ← → или кнопками на экране. Лови нужное слово и уклоняйся от ошибок. За неверную форму исчезает одно сердце.'
+        body: '<strong>Цель:</strong> поймать 7 правильных форм Past Simple.<br><strong>Нажимай на правильную звезду</strong> мышью или пальцем. Можно также двигать ракету стрелками ← →. За выбор неверной формы исчезает одно сердце.'
       },
       {
         icon: '🌼',
@@ -1319,7 +1334,7 @@
     function startRocketGame() {
       gameStage.innerHTML = `
         <div class="rocket-game">
-          <div class="target-cloud"><span>Catch the past of</span><strong id="rocketTarget">PLAY</strong></div>
+          <div class="target-cloud"><span>Tap the past of</span><strong id="rocketTarget">PLAY</strong></div>
           <div class="rocket-player" id="rocketPlayer" aria-label="Ракета">🚀</div>
           <div class="rocket-controls">
             <button class="control-button" id="rocketLeft" aria-label="Лететь влево">←</button>
@@ -1350,13 +1365,28 @@
       rocketState.waveY = -10;
       rocketState.waveResolved = false;
       rocketState.wave = words.map((word, index) => {
-        const element = document.createElement('div');
+        const element = document.createElement('button');
+        element.type = 'button';
         element.className = 'falling-word';
         element.textContent = word;
+        element.setAttribute('aria-label', `Выбрать слово ${word}`);
         element.style.left = `${[18, 50, 82][index]}%`;
         gameStage.querySelector('.rocket-game').append(element);
-        return { word, x: [18, 50, 82][index], element, correct: word === verb.past };
+        const item = { word, x: [18, 50, 82][index], element, correct: word === verb.past };
+        element.addEventListener('click', () => chooseRocketWord(item));
+        return item;
       });
+    }
+
+    function chooseRocketWord(item) {
+      if (!rocketState?.running || rocketState.waveResolved) return;
+      rocketState.waveResolved = true;
+      rocketState.x = item.x;
+      const player = document.querySelector('#rocketPlayer');
+      if (player) player.style.left = `${rocketState.x}%`;
+      item.element.classList.add('chosen');
+      playSound('click');
+      scheduleGame(0, () => resolveRocketCatch(item), 120);
     }
 
     function rocketLoop(time) {
