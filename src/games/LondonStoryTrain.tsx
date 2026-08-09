@@ -47,7 +47,13 @@ export function LondonStoryTrain({ theme, soundOn, onToggleSound, onBack, onComp
       playSound('good', soundOn);
       timers.current.push(window.setTimeout(() => {
         if (round + 1 >= theme.tasks.length) onComplete({ completedTasks: theme.tasks.length, errors });
-        else setRound((value) => value + 1);
+        else {
+          // Clear the old wagons in the same React update as the round change.
+          // Otherwise the next render tries to find old token IDs in the new sentence.
+          setSelected([]);
+          setWrongPositions([]);
+          setRound((value) => value + 1);
+        }
       }, 780));
       return;
     }
@@ -96,7 +102,8 @@ export function LondonStoryTrain({ theme, soundOn, onToggleSound, onBack, onComp
           <div><span className="panel-kicker">Предложение {round + 1}</span><h2>Build the story train</h2></div>
           <div className="train-answer" aria-label="Собранное предложение">
             {selected.map((id, index) => {
-              const token = tokens.find((item) => item.id === id)!;
+              const token = tokens.find((item) => item.id === id);
+              if (!token) return null;
               return (
                 <span className={`answer-wagon ${wrongPositions.includes(index) ? 'wrong' : ''}`} key={id}>
                   {wrongPositions.includes(index) && <em>нужно: {correctWords[index]}</em>}
